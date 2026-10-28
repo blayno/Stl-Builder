@@ -97,7 +97,7 @@ footer strong{color:var(--accent)}.footer-spacer{margin-left:auto}
         <div class="field"><label for="scaleY">Y</label><input id="scaleY" type="number" min="0.1" step="1" value="100"></div>
         <div class="field"><label for="scaleZ">Z</label><input id="scaleZ" type="number" min="0.1" step="1" value="100"></div>
       </div>
-      <div class="row"><button id="uniformScale">Uniform scale</button><button id="dropToBed">Drop to bed (Z=0)</button></div>
+      <div class="row"><div class="checkrow"><span>Uniform scale</span><input id="uniformScale" type="checkbox"></div><button id="dropToBed">Drop to bed (Z=0)</button></div>
       <label style="margin-top:12px">Move quickly (mm)</label>
       <div class="stepgrid">
         <button data-axis="x" data-step="-10">X −10</button><button data-axis="x" data-step="10">X +10</button>
@@ -205,12 +205,12 @@ function readTransform(){const p=selected();if(!p)return;
   updateStats();updateDims();
 }
 function num(id){const v=parseFloat($(id).value);return Number.isFinite(v)?v:0}
-['posX','posY','posZ','rotX','rotY','rotZ','scaleX','scaleY','scaleZ'].forEach(id=>$(id).addEventListener('change',readTransform));
+['posX','posY','posZ','rotX','rotY','rotZ','scaleX','scaleY','scaleZ'].forEach(id=>$(id).addEventListener('change',()=>{if(id.startsWith('scale')&&$('uniformScale').checked){const v=Math.max(.1,num(id));['scaleX','scaleY','scaleZ'].forEach(scaleId=>setVal(scaleId,v))}readTransform()}));
 $('partColor').addEventListener('input',()=>{const p=selected();if(!p)return;p.color=$('partColor').value;p.mesh.material.color.set(p.color);renderList()});
 $('partVisible').addEventListener('change',()=>{const p=selected();if(!p)return;p.mesh.visible=$('partVisible').value==='yes';renderList();updateStats()});
 $('wireframe').addEventListener('change',()=>{showWire=$('wireframe').checked;parts.forEach(p=>p.mesh.material.wireframe=showWire)});
 document.querySelectorAll('[data-axis]').forEach(b=>b.addEventListener('click',()=>{const p=selected();if(!p)return;const axis=b.dataset.axis,step=Number(b.dataset.step);p.mesh.position[axis]+=step;selectPart(p.id);updateStats()}));
-$('uniformScale').onclick=()=>{const p=selected();if(!p)return;const v=Math.max(.1,num('scaleX'));['scaleY','scaleZ'].forEach(id=>setVal(id,v));setVal('scaleX',v);readTransform()};
+
 $('dropToBed').onclick=()=>{const p=selected();if(!p)return;const b=geomBounds(p.mesh);p.mesh.position.z-=b.min.z;selectPart(p.id);updateStats()};
 $('moveUp').onclick=()=>moveZ(1);$('moveDown').onclick=()=>moveZ(-1);
 function moveZ(n){const p=selected();if(!p)return;p.mesh.position.z+=n;selectPart(p.id);updateStats()}
